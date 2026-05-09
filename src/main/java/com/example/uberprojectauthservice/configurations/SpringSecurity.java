@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SpringSecurity{
+public class  SpringSecurity{
     @Bean
     public SecurityFilterChain filterCriteria(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
