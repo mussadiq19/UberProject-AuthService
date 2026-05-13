@@ -11,6 +11,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -29,17 +30,24 @@ public class JwtService {
     }
 
     //This method creates a brand new token for us based on a payload
-    private String createToken(Map<String, Object>payload,String email){
+    public String createToken(Map<String, Object>payload,String email){
         Date now = new Date();
         Date expiryDate= new Date(now.getTime()+expiry*1000L);
-        return Jwts.builder().
-                claims(payload)
+        return Jwts.builder()
+                .claims(payload)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(expiryDate).subject(email)
                 .signWith(getSignKey())
                 .compact();
     }
-    private Claims extractAllPayloads(String token) {
+
+    public String createToken(String email){
+        System.out.println(createToken(new HashMap<>(),email));
+        return createToken(new HashMap<>(),email);
+
+    }
+
+    public Claims extractAllPayloads(String token) {
         return Jwts
                 .parser()
                 .verifyWith((SecretKey) getSignKey()) // Use verifyWith instead of setSigningKey

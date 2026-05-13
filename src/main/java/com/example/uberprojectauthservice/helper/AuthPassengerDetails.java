@@ -26,8 +26,8 @@ public class AuthPassengerDetails extends Passenger implements UserDetails {
         return this.username;
     }
     @Override
-    public @Nullable String getPassword() {
-        return null;
+    public @Nullable String getPassword()  {
+        return this.password; 
     }
 
 }
