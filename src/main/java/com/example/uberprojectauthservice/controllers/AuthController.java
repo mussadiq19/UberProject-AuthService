@@ -4,8 +4,7 @@ import com.example.uberprojectauthservice.dto.AuthRequestDto;
 import com.example.uberprojectauthservice.dto.PassengerDto;
 import com.example.uberprojectauthservice.dto.PassengerSignupRequestDto;
 import com.example.uberprojectauthservice.services.AuthService;
-import com.example.uberprojectauthservice.services.JwtService;
-import jakarta.servlet.http.HttpServlet;
+import com.example.uberprojectauthservice.services.JwtService;Z
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -15,11 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -46,20 +42,23 @@ public class AuthController {
         Authentication authentication =authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),authRequestDto.getPassword()));
         System.out.println(authentication);
         if(authentication.isAuthenticated()){
-//            Map<String,Object>payload=new HashMap<>();
-//            payload.put("email",authRequestDto.getEmail());
-//            String jwtToken=jwtService.createToken(payload, Objects.requireNonNull(authentication.getPrincipal()).toString());
+//          Map<String,Object>payload=new HashMap<>();
+//          payload.put("email",authRequestDto.getEmail());
+//          String jwtToken=jwtService.createToken(payload, Objects.requireNonNull(authentication.getPrincipal()).toString());
             String jwtToken=jwtService.createToken(authRequestDto.getEmail());
+            System.out.println("Generated Token: " + jwtToken); // Add this line to log the token
             ResponseCookie cookie= ResponseCookie.from("JwtToken",jwtToken)
                                     .httpOnly(true)
-                                    .secure(false)
+                                    .secure(false)//set to true in production
                                     .path("/")
                                     .maxAge(cookieExpiry)
                                     .build();
             response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             System.out.println(authRequestDto.getEmail());
             return new ResponseEntity<>(jwtToken,HttpStatus.OK);
+        }else {
+            //return new ResponseEntity<>("Auth not Successful", HttpStatus.OK);
+            throw new UsernameNotFoundException("user not fount");
         }
-        return  new ResponseEntity<>("Auth not Successful",HttpStatus.OK);
     }
 }

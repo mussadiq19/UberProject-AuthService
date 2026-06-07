@@ -20,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class  SpringSecurity{ ;
+public class  SpringSecurity{
     private final UserDetailsServiceImp userDetailsService;
 
     // Constructor injection — no @Autowired needed in Spring 4.3+
@@ -32,6 +32,7 @@ public class  SpringSecurity{ ;
     public SecurityFilterChain filterCriteria(HttpSecurity http, BeanFactory beanFactory) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/signup/*").permitAll())
                 .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/signin/*").permitAll())
                 .build();
