@@ -17,10 +17,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import static org.apache.tomcat.util.http.Method.POST;
+import static org.hibernate.id.PersistentIdentifierGenerator.OPTIONS;
 
 @Configuration
 @EnableWebSecurity
-public class  SpringSecurity{
+public class  SpringSecurity implements WebMvcConfigurer {
     private final UserDetailsServiceImp userDetailsService;
 
     // Constructor injection — no @Autowired needed in Spring 4.3+
@@ -33,8 +38,12 @@ public class  SpringSecurity{
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/signup/*").permitAll())
-                .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/signin/*").permitAll())
+                .authorizeHttpRequests(auth ->
+                        auth
+                                .requestMatchers("/api/v1/auth/signup/*").permitAll()
+                                .requestMatchers("/api/v1/auth/signin/*").permitAll()
+                               // .requestMatchers("/api/v1/auth/validate").authenticated()
+                )
                 .build();
     }
     @Bean
@@ -57,4 +66,11 @@ public class  SpringSecurity{
         return new BCryptPasswordEncoder();
     }
 
+    @Override
+    public void addCorsMappings(CorsRegistry registry){
+        registry.addMapping("/**")
+                .allowCredentials(true)
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS");
+    }
 }
