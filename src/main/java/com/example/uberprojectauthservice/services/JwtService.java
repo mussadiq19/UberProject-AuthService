@@ -60,17 +60,21 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private Date extractExpiration(String token ){
+    public Date extractExpiration(String token ){
         return extractClaim(token,Claims::getExpiration);
 
     }
-    private Boolean isTokenExpired(String token){
+    public Boolean isTokenExpired(String token){
+
         return extractExpiration(token).before(new Date());
     }
-    private String extractEmail(String token){
+
+    public String extractEmail(String token){
+
         return extractClaim(token,Claims::getSubject);
     }
-    private Boolean validateToken(String token , String email){
+
+    public Boolean validateToken(String token , String email){
         final  String userEmailFetchedFromToken=extractEmail(token);
         return (userEmailFetchedFromToken.equals(email))&& !isTokenExpired(token);
     }

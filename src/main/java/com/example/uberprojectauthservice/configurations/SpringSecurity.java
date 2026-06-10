@@ -1,5 +1,6 @@
 package com.example.uberprojectauthservice.configurations;
 
+import com.example.uberprojectauthservice.filters.JwtAuthFilter;
 import com.example.uberprojectauthservice.services.UserDetailsServiceImp;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.BeanFactory;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -27,10 +29,12 @@ import static org.hibernate.id.PersistentIdentifierGenerator.OPTIONS;
 @EnableWebSecurity
 public class  SpringSecurity implements WebMvcConfigurer {
     private final UserDetailsServiceImp userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
     // Constructor injection — no @Autowired needed in Spring 4.3+
-    public SpringSecurity(UserDetailsServiceImp userDetailsService) {
+    public SpringSecurity(UserDetailsServiceImp userDetailsService, JwtAuthFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
     @Bean
@@ -42,8 +46,10 @@ public class  SpringSecurity implements WebMvcConfigurer {
                         auth
                                 .requestMatchers("/api/v1/auth/signup/*").permitAll()
                                 .requestMatchers("/api/v1/auth/signin/*").permitAll()
-                               // .requestMatchers("/api/v1/auth/validate").authenticated()
+                                .requestMatchers("/api/v1/auth/validate").authenticated()
                 )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
     @Bean

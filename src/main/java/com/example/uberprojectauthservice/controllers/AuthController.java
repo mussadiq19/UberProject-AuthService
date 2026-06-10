@@ -5,6 +5,8 @@ import com.example.uberprojectauthservice.dto.PassengerDto;
 import com.example.uberprojectauthservice.dto.PassengerSignupRequestDto;
 import com.example.uberprojectauthservice.services.AuthService;
 import com.example.uberprojectauthservice.services.JwtService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -60,5 +62,13 @@ public class AuthController {
             //return new ResponseEntity<>("Auth not Successful", HttpStatus.OK);
             throw new UsernameNotFoundException("user not fount");
         }
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?>validate(HttpServletRequest request){
+        for(Cookie cookie: request.getCookies()){
+            System.out.println(cookie.getName()+" "+cookie.getValue());
+        }
+        return new ResponseEntity<>("Success",HttpStatus.OK);
     }
 }
