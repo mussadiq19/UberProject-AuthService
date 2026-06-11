@@ -1,2 +1,0 @@
-ALTER TABLE driver
-    ADD ph_no VARCHAR(255) NULL;
