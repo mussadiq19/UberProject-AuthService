@@ -1,8 +1,8 @@
 package com.example.uberprojectauthservice.controllers;
 
-import com.example.uberprojectauthservice.dto.AuthRequestDto;
-import com.example.uberprojectauthservice.dto.PassengerDto;
-import com.example.uberprojectauthservice.dto.PassengerSignupRequestDto;
+import com.example.uberprojectauthservice.dto.*;
+import com.example.uberprojectauthservice.helper.AuthDriverDetails;
+import com.example.uberprojectauthservice.helper.AuthPassengerDetails;
 import com.example.uberprojectauthservice.services.AuthService;
 import com.example.uberprojectauthservice.services.JwtService;
 import jakarta.servlet.http.Cookie;
@@ -39,36 +39,93 @@ public class AuthController {
         PassengerDto response = authService.signupPassenger(passengerSignupRequestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-    @PostMapping("/signin/passenger")
-    public ResponseEntity<?>signIn(@RequestBody AuthRequestDto authRequestDto, HttpServletResponse response){
-        Authentication authentication =authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),authRequestDto.getPassword()));
-        System.out.println(authentication);
-        if(authentication.isAuthenticated()){
-//          Map<String,Object>payload=new HashMap<>();
-//          payload.put("email",authRequestDto.getEmail());
-//          String jwtToken=jwtService.createToken(payload, Objects.requireNonNull(authentication.getPrincipal()).toString());
-            String jwtToken=jwtService.createToken(authRequestDto.getEmail());
-            System.out.println("Generated Token: " + jwtToken); // Add this line to log the token
-            ResponseCookie cookie= ResponseCookie.from("JwtToken",jwtToken)
-                                    .httpOnly(true)
-                                    .secure(false)//set to true in production
-                                    .path("/")
-                                    .maxAge(cookieExpiry)
-                                    .build();
-            response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-            System.out.println(authRequestDto.getEmail());
-            return new ResponseEntity<>(jwtToken,HttpStatus.OK);
-        }else {
-            //return new ResponseEntity<>("Auth not Successful", HttpStatus.OK);
-            throw new UsernameNotFoundException("user not fount");
-        }
-    }
+//    @PostMapping("/signin/passenger")
+//    public ResponseEntity<?>signIn(@RequestBody AuthRequestDto authRequestDto, HttpServletResponse response){
+//        Authentication authentication =authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),authRequestDto.getPassword()));
+//        if (!(authentication.getPrincipal() instanceof AuthPassengerDetails)) {
+//            throw new UsernameNotFoundException("No passenger found with this email");
+//        }
+//        System.out.println(authentication);
+//        if(authentication.isAuthenticated()){
+////          Map<String,Object>payload=new HashMap<>();
+////          payload.put("email",authRequestDto.getEmail());
+////          String jwtToken=jwtService.createToken(payload, Objects.requireNonNull(authentication.getPrincipal()).toString());
+//            String jwtToken=jwtService.createToken(authRequestDto.getEmail());
+//            System.out.println("Generated Token: " + jwtToken); // Add this line to log the token
+//            ResponseCookie cookie= ResponseCookie.from("JwtToken",jwtToken)
+//                                    .httpOnly(true)
+//                                    .secure(false)//set to true in production
+//                                    .path("/")
+//                                    .maxAge(cookieExpiry)
+//                                    .build();
+//            response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+//            System.out.println(authRequestDto.getEmail());
+//            return new ResponseEntity<>(jwtToken,HttpStatus.OK);
+//        }else {
+//            //return new ResponseEntity<>("Auth not Successful", HttpStatus.OK);
+//            throw new UsernameNotFoundException("user not fount");
+//        }
+//    }
 
     @GetMapping("/validate")
-    public ResponseEntity<?>validate(HttpServletRequest request){
-        for(Cookie cookie: request.getCookies()){
-            System.out.println(cookie.getName()+" "+cookie.getValue());
+    public ResponseEntity<?> validate(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return new ResponseEntity<>("No cookies found", HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>("Success",HttpStatus.OK);
+
+        String jwtToken = null;
+        for (Cookie cookie : cookies) {
+            if ("JwtToken".equals(cookie.getName())) {
+            jwtToken = cookie.getValue();
+             }
+         }
+
+        if (jwtToken == null) {
+        return new ResponseEntity<>("No JwtToken cookie", HttpStatus.UNAUTHORIZED);
+        }
+
+    return new ResponseEntity<>("Success", HttpStatus.OK);
+}
+
+    @PostMapping("/signup/driver")
+    public ResponseEntity<DriverDto>signUp(@RequestBody DriverSignupRequestDto driverSignupRequestDto){
+        DriverDto response = authService.signupDriver(driverSignupRequestDto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+    @PostMapping("/signin")
+    public ResponseEntity<?> signIn(@RequestBody AuthRequestDto authRequestDto, HttpServletResponse response){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(), authRequestDto.getPassword()));
+
+        if (!authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("user not found");
+        }
+
+        Object principal = authentication.getPrincipal();
+        String role;
+
+        if (principal instanceof AuthPassengerDetails) {
+            role = "PASSENGER";
+        } else if (principal instanceof AuthDriverDetails) {
+            role = "DRIVER";
+        } else {
+            // shouldn't happen, but fail safely if some other principal type shows up
+            throw new UsernameNotFoundException("Unknown account type");
+        }
+
+        String jwtToken = jwtService.createToken(authRequestDto.getEmail());
+
+        ResponseCookie cookie = ResponseCookie.from("JwtToken", jwtToken)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(cookieExpiry)
+                .build();
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return new ResponseEntity<>(new AuthResponseDto(true, role), HttpStatus.OK);
+    }
+
 }

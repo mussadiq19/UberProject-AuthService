@@ -10,8 +10,8 @@ import java.util.List;
 //why we need this class
 //because spring security works on User details polymorphic type of auth
 public class AuthPassengerDetails extends Passenger implements UserDetails {
-    private String username;
-    private String password;
+    private final String username;
+    private final String password;
     public AuthPassengerDetails(Passenger passenger){
         this.username=passenger.getEmail();
         this.password=passenger.getPassword();

@@ -8,5 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthResponseDto {
-    public Boolean Success;
+    public Boolean success;
+    private String role;
 }
