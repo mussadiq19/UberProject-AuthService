@@ -105,11 +105,14 @@ public class AuthController {
 
         Object principal = authentication.getPrincipal();
         String role;
+        Long id;
 
-        if (principal instanceof AuthPassengerDetails) {
+        if (principal instanceof AuthPassengerDetails passengerDetails) {
             role = "PASSENGER";
-        } else if (principal instanceof AuthDriverDetails) {
+            id=passengerDetails.getId();
+        } else if (principal instanceof AuthDriverDetails driverDetails) {
             role = "DRIVER";
+            id=driverDetails.getId();
         } else {
             // shouldn't happen, but fail safely if some other principal type shows up
             throw new UsernameNotFoundException("Unknown account type");
@@ -125,7 +128,7 @@ public class AuthController {
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return new ResponseEntity<>(new AuthResponseDto(true, role), HttpStatus.OK);
+        return new ResponseEntity<>(new AuthResponseDto(id,true,role), HttpStatus.OK);
     }
 
 }
